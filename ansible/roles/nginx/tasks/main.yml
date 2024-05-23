@@ -1,0 +1,53 @@
+- name: Install nginx, python3-pip
+  ansible.builtin.apt:
+    name: 
+      - nginx
+      - python3-pip
+    state: latest
+
+- name: Install PM2 globally
+  ansible.builtin.npm:
+    name: pm2
+    global: yes
+    state: present     
+
+- name: Install Python packages with pip3
+  ansible.builtin.pip:
+    name:
+      - boto3
+      - botocore
+    executable: pip3
+
+- name: Download file from S3 bucket
+  shell: aws s3 cp s3://sujata-static-website-one/file.zip /tmp
+
+- name: Create directory
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+
+- name: Unzip archive
+  unarchive:
+    src: /tmp/file.zip
+    dest: /tmp
+    remote_src: yes
+
+- name: Copy files to destination
+  copy:
+    src: /tmp/test/
+    dest: "{{ app_dir }}"
+    remote_src: yes
+
+- name: Install dependencies
+  npm:
+    path: "{{ app_dir }}"
+
+- name: Configure Nginx
+  ansible.builtin.template:
+    src: nginx.j2
+    dest: /etc/nginx/sites-enabled/default
+
+
+- name: start the application
+  command: pm2 start -f /var/www/html/index.js
+  notify: restart handler

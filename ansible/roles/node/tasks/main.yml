@@ -1,0 +1,35 @@
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Installing (npm, nodejs, unzip)
+  ansible.builtin.apt:
+    name: 
+      - npm
+      - nodejs
+      - unzip
+    state: latest
+
+- name: Remove existing AWS CLI installation directory
+  ansible.builtin.file:
+    path: "/usr/local/aws-cli"
+    state: absent
+
+- name: Download AWS CLI bundle 
+  ansible.builtin.get_url:
+    url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+    dest: "/tmp/awscliv2.zip"
+
+- name: Unpack AWS CLI bundle 
+  ansible.builtin.unarchive:
+    src: "/tmp/awscliv2.zip"
+    dest: "/tmp"
+    remote_src: yes
+
+- name: Install AWS CLI 
+  ansible.builtin.command: "/tmp/aws/install"
+
+- name: Install AWS CLI 
+  ansible.builtin.apt:
+    name: awscli
+    state: present
